@@ -9,6 +9,7 @@ def test_get_assignments_teacher_1(client, h_teacher_1):
     data = response.json['data']
     for assignment in data:
         assert assignment['teacher_id'] == 1
+        assert assignment['state'] in ['SUBMITTED', 'GRADED']
 
 
 def test_get_assignments_teacher_2(client, h_teacher_2):
@@ -99,3 +100,59 @@ def test_grade_assignment_draft_assignment(client, h_teacher_1):
     data = response.json
 
     assert data['error'] == 'FyleError'
+
+def test_mark_grade_invalid_grade(client, h_teacher_1):
+    """
+    Test marking grade with an invalid grade.
+    """
+    # Choose an existing assignment ID from the table
+
+    response = client.post(
+        '/teacher/assignments/grade',
+        headers=h_teacher_1,
+        json={
+            "id": 7,
+            "grade": "Z"  # Invalid grade
+        }
+    )
+
+    assert response.status_code == 400
+    data = response.json
+    assert 'error' in data
+    assert data['error'] == 'ValidationError'
+
+# def test_mark_grade_already_graded(client, h_teacher_1):
+#     """
+#     Test marking grade for an already graded assignment.
+#     """
+#     response = client.post(
+#         '/teacher/assignments/grade',
+#         headers=h_teacher_1,
+#         json={
+#             "id": 7,  # Existing assignment ID
+#             "grade": "B"  # New grade
+#         }
+#     )
+
+#     assert response.status_code == 400
+#     data = response.json
+#     assert 'error' in data
+#     assert data['error'] == 'FyleError'
+
+def test_mark_grade_empty_grade(client, h_teacher_1):
+    """
+    Test marking grade with an empty grade.
+    """
+    response = client.post(
+        '/teacher/assignments/grade',
+        headers=h_teacher_1,
+        json={
+            "id": 7,  # Existing assignment ID
+            "grade": ""  # Empty grade
+        }
+    )
+
+    assert response.status_code == 400
+    data = response.json
+    assert 'error' in data
+    assert data['error'] == 'ValidationError'

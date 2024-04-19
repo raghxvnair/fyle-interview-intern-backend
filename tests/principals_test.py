@@ -60,3 +60,36 @@ def test_regrade_assignment(client, h_principal):
 
     assert response.json['data']['state'] == AssignmentStateEnum.GRADED.value
     assert response.json['data']['grade'] == GradeEnum.B
+
+def test_regrade_assignment_wrong_teacher(client, h_principal):
+    """
+    Test regrading an assignment by a principal when the assignment was not submitted to them.
+    """
+    # Choose an existing assignment ID from the table that was not submitted to the principal
+
+    response = client.post(
+        '/principal/assignments/grade',
+        json={
+            'id': 6,
+            'grade': GradeEnum.A.value
+        },
+        headers=h_principal
+    )
+
+    assert response.status_code == 404
+
+def test_regrade_assignment_missing_grade(client, h_principal):
+    """
+    Test regrading an assignment without providing the grade.
+    """
+    # Choose an existing assignment ID from the table
+
+    response = client.post(
+        '/principal/assignments/grade',
+        json={
+            'id': 8
+        },
+        headers=h_principal
+    )
+
+    assert response.status_code == 400
