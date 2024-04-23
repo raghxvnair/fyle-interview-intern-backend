@@ -121,6 +121,28 @@ def test_mark_grade_invalid_grade(client, h_teacher_1):
     assert 'error' in data
     assert data['error'] == 'ValidationError'
 
+def test_grade_once_submitted_assignment(client, h_teacher_1):
+
+    """
+    Marking grade for a submitted assignment
+    """
+
+    response = client.post(
+        '/teacher/assignments/grade',
+        headers=h_teacher_1,
+        json={
+            "id": 1,
+            "grade": "B"
+        }
+    )
+
+    assert response.status_code == 200
+    data = response.json
+
+    assert data['data']['grade'] == 'B'
+    assert data['data']['state'] == 'GRADED'
+
+
 def test_mark_grade_empty_grade(client, h_teacher_1):
     """
     Test marking grade with an empty grade.

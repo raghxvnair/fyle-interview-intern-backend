@@ -13,6 +13,16 @@ def test_get_assignments(client, h_principal):
     for assignment in data:
         assert assignment['state'] in [AssignmentStateEnum.SUBMITTED, AssignmentStateEnum.GRADED]
 
+def test_get_all_teachers(client, h_principal):
+    response = client.get(
+        '/principal/teachers',
+        headers=h_principal
+    )
+
+    assert response.status_code == 200
+
+    data = response.json['data']
+
 
 def test_grade_assignment_draft_assignment(client, h_principal):
     """
@@ -65,7 +75,6 @@ def test_regrade_assignment_wrong_teacher(client, h_principal):
     """
     Test regrading an assignment by a principal when the assignment was not submitted to them.
     """
-    # Choose an existing assignment ID from the table that was not submitted to the principal
 
     response = client.post(
         '/principal/assignments/grade',
@@ -82,7 +91,6 @@ def test_regrade_assignment_missing_grade(client, h_principal):
     """
     Test regrading an assignment without providing the grade.
     """
-    # Choose an existing assignment ID from the table
 
     response = client.post(
         '/principal/assignments/grade',
