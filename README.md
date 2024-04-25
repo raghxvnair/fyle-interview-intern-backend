@@ -21,7 +21,8 @@ Before you begin, ensure you have the following installed on your system:
 
 4. *Run the Docker Container*:
     bash
-    docker-compose up
+    docker-compose up -d
+    docker exec -it imageid sh
     
 
 5. *Access the Application*:

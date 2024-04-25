@@ -1,3 +1,6 @@
+from core.models.assignments import AssignmentStateEnum
+
+
 def test_get_assignments_student_1(client, h_student_1):
     response = client.get(
         '/student/assignments',
@@ -53,7 +56,25 @@ def test_post_assignment_student_1(client, h_student_1):
 
     data = response.json['data']
     assert data['content'] == content
-    assert data['state'] == 'DRAFT'
+    assert data['state'] == AssignmentStateEnum.DRAFT
+    assert data['teacher_id'] is None
+
+def test_edit_assignment_student_1(client, h_student_1):
+    content = 'SOLUTION T2'
+
+    response = client.post(
+        '/student/assignments',
+        headers=h_student_1,
+        json={
+            'id':1,
+            'content': content
+        })
+
+    assert response.status_code == 200
+
+    data = response.json['data']
+    assert data['content'] == content
+    assert data['state'] == AssignmentStateEnum.DRAFT
     assert data['teacher_id'] is None
 
 
@@ -70,7 +91,7 @@ def test_submit_assignment_student_1(client, h_student_1):
 
     data = response.json['data']
     assert data['student_id'] == 1
-    assert data['state'] == 'SUBMITTED'
+    assert data['state'] == AssignmentStateEnum.SUBMITTED
     assert data['teacher_id'] == 2
 
 

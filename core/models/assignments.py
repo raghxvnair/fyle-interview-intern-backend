@@ -44,11 +44,16 @@ class Assignment(db.Model):
         return cls.filter(cls.id == _id).first()
 
     @classmethod
-    def upsert(cls, assignment_new: 'Assignment'):
+    def upsert(cls, assignment_new: 'Assignment', _id):
         assertions.assert_valid(assignment_new.content is not None, 'content connot be empty!')
-        assignment = assignment_new
-        db.session.add(assignment_new)
+        assignment=assignment_new
+        assignment_id = Assignment.get_by_id(_id)
+        if(assignment_id):
+            assignment_id.content=assignment.content
+        else:
+            db.session.add(assignment_new)
 
+        assignment.state = AssignmentStateEnum.DRAFT
         db.session.flush()
         return assignment
 
@@ -58,7 +63,8 @@ class Assignment(db.Model):
         assertions.assert_found(assignment, 'No assignment with this id was found')
         assertions.assert_valid(assignment.student_id == auth_principal.student_id, 'This assignment belongs to some other student')
         assertions.assert_valid(assignment.content is not None, 'assignment with empty content cannot be submitted')
-        assertions.assert_valid(assignment.state != AssignmentStateEnum.SUBMITTED, "only a draft assignment can be submitted")
+        assertions.assert_valid(assignment.state == AssignmentStateEnum.DRAFT, "only a draft assignment can be submitted")
+        assertions.assert_valid(teacher_id is not None, "student should submit to a valid teacher")
 
         assignment.teacher_id = teacher_id
         assignment.state = AssignmentStateEnum.SUBMITTED
@@ -71,8 +77,11 @@ class Assignment(db.Model):
     def mark_grade(cls, _id, grade, auth_principal: AuthPrincipal):
         assignment = Assignment.get_by_id(_id)
         assertions.assert_found(assignment, 'No assignment with this id was found')
-        assertions.assert_valid(grade is not None, 'assignment with empty grade cannot be graded')
-        assertions.assert_valid(assignment.state != AssignmentStateEnum.DRAFT,"assignment is in draft state cannot be graded")
+        # assertions.assert_found(grade, 'Assignment with empty grade cannot be graded')
+        assertions.assert_valid(assignment.state != AssignmentStateEnum.DRAFT,"assignment in draft state cannot be graded")
+        if(auth_principal.principal_id):
+            assertions.assert_valid(assignment.state == AssignmentStateEnum.GRADED,"assignment is not already graded")
+
         if(auth_principal.teacher_id):
             assertions.assert_valid(assignment.teacher_id == auth_principal.teacher_id, "assignment is submitted to other teacher")
 

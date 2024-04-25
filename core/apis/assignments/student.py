@@ -24,10 +24,7 @@ def upsert_assignment(p, incoming_payload):
     assignment = AssignmentSchema().load(incoming_payload)
     assignment.student_id = p.student_id
 
-    if(assignment.content is None) :
-        abort(400)
-        
-    upserted_assignment = Assignment.upsert(assignment)
+    upserted_assignment = Assignment.upsert(assignment,assignment.id)
     db.session.commit()
     upserted_assignment_dump = AssignmentSchema().dump(upserted_assignment)
     return APIResponse.respond(data=upserted_assignment_dump)
